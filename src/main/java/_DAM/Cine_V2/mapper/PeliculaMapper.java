@@ -1,6 +1,7 @@
 package _DAM.Cine_V2.mapper;
 
-import _DAM.Cine_V2.dto.PeliculaDTO;
+import _DAM.Cine_V2.dto.input.PeliculaInputDTO;
+import _DAM.Cine_V2.dto.output.PeliculaOutputDTO;
 import _DAM.Cine_V2.modelo.Actor;
 import _DAM.Cine_V2.modelo.Pelicula;
 import org.mapstruct.Mapper;
@@ -17,12 +18,13 @@ public abstract class PeliculaMapper {
 
     @Mapping(target = "directorId", source = "director.id")
     @Mapping(target = "actorIds", source = "actores", qualifiedByName = "mapActorsToIds")
-    public abstract PeliculaDTO toDTO(Pelicula pelicula);
+    public abstract PeliculaOutputDTO toOutputDTO(Pelicula pelicula);
 
     @Mapping(target = "director", ignore = true)
     @Mapping(target = "actores", ignore = true)
     @Mapping(target = "funciones", ignore = true)
-    public abstract Pelicula toEntity(PeliculaDTO peliculaDTO);
+    @Mapping(target = "id", ignore = true)
+    public abstract Pelicula toEntity(PeliculaInputDTO peliculaInputDTO);
 
     @Named("mapActorsToIds")
     public Set<Long> mapActorsToIds(Set<Actor> actors) {

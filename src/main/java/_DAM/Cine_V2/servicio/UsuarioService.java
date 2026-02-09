@@ -1,6 +1,7 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.UsuarioDTO;
+import _DAM.Cine_V2.dto.input.UsuarioInputDTO;
+import _DAM.Cine_V2.dto.output.UsuarioOutputDTO;
 import _DAM.Cine_V2.mapper.UsuarioMapper;
 import _DAM.Cine_V2.modelo.Rol;
 import _DAM.Cine_V2.modelo.Usuario;
@@ -23,26 +24,26 @@ public class UsuarioService {
     private final RolRepository rolRepository;
     private final UsuarioMapper usuarioMapper;
 
-    public List<UsuarioDTO> findAll() {
+    public List<UsuarioOutputDTO> findAll() {
         return usuarioRepository.findAll().stream()
-                .map(usuarioMapper::toDTO)
+                .map(usuarioMapper::toOutputDTO)
                 .collect(Collectors.toList());
     }
 
-    public UsuarioDTO findById(Long id) {
+    public UsuarioOutputDTO findById(Long id) {
         return usuarioRepository.findById(id)
-                .map(usuarioMapper::toDTO)
+                .map(usuarioMapper::toOutputDTO)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
     }
 
     @Transactional
-    public UsuarioDTO save(UsuarioDTO usuarioDTO) {
-        Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
+    public UsuarioOutputDTO save(UsuarioInputDTO usuarioInputDTO) {
+        Usuario usuario = usuarioMapper.toEntity(usuarioInputDTO);
 
         // Handle Roles
-        if (usuarioDTO.roles() != null && !usuarioDTO.roles().isEmpty()) {
+        if (usuarioInputDTO.roles() != null && !usuarioInputDTO.roles().isEmpty()) {
             Set<Rol> roles = new HashSet<>();
-            for (String rolNombre : usuarioDTO.roles()) {
+            for (String rolNombre : usuarioInputDTO.roles()) {
                 Rol rol = rolRepository.findByNombre(rolNombre)
                         .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + rolNombre));
                 roles.add(rol);
@@ -51,12 +52,40 @@ public class UsuarioService {
         }
 
         // Handle password (basic for now)
-        if (usuarioDTO.password() != null && !usuarioDTO.password().isBlank()) {
-            usuario.setPassword(usuarioDTO.password()); // In real app, B.crypt here
+        if (usuarioInputDTO.password() != null && !usuarioInputDTO.password().isBlank()) {
+            usuario.setPassword(usuarioInputDTO.password()); // In real app, B.crypt here
         }
 
         Usuario saved = usuarioRepository.save(usuario);
-        return usuarioMapper.toDTO(saved);
+        return usuarioMapper.toOutputDTO(saved);
+    }
+
+    @Transactional
+    public UsuarioOutputDTO update(Long id, UsuarioInputDTO usuarioInputDTO) {
+        if (!usuarioRepository.existsById(id)) {
+            throw new RuntimeException("Usuario no encontrado con ID: " + id);
+        }
+        Usuario usuario = usuarioMapper.toEntity(usuarioInputDTO);
+        usuario.setId(id);
+
+        // Handle Roles
+        if (usuarioInputDTO.roles() != null && !usuarioInputDTO.roles().isEmpty()) {
+            Set<Rol> roles = new HashSet<>();
+            for (String rolNombre : usuarioInputDTO.roles()) {
+                Rol rol = rolRepository.findByNombre(rolNombre)
+                        .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + rolNombre));
+                roles.add(rol);
+            }
+            usuario.setRoles(roles);
+        }
+
+        // Handle password (basic for now)
+        if (usuarioInputDTO.password() != null && !usuarioInputDTO.password().isBlank()) {
+            usuario.setPassword(usuarioInputDTO.password()); // In real app, B.crypt here
+        }
+
+        Usuario saved = usuarioRepository.save(usuario);
+        return usuarioMapper.toOutputDTO(saved);
     }
 
     public void deleteById(Long id) {

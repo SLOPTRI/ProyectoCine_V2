@@ -1,7 +1,8 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.EntradaDTO;
-import _DAM.Cine_V2.dto.VentaDTO;
+import _DAM.Cine_V2.dto.input.EntradaInputDTO;
+import _DAM.Cine_V2.dto.input.VentaInputDTO;
+import _DAM.Cine_V2.dto.output.VentaOutputDTO;
 import _DAM.Cine_V2.mapper.EntradaMapper;
 import _DAM.Cine_V2.mapper.VentaMapper;
 import _DAM.Cine_V2.modelo.*;
@@ -28,32 +29,33 @@ public class VentaService {
     private final VentaMapper ventaMapper;
     private final EntradaMapper entradaMapper;
 
-    public List<VentaDTO> findAll() {
+    public List<VentaOutputDTO> findAll() {
         return ventaRepository.findAll().stream()
-                .map(ventaMapper::toDTO)
+                .map(ventaMapper::toOutputDTO)
                 .collect(Collectors.toList());
     }
 
-    public VentaDTO findById(Long id) {
+    public VentaOutputDTO findById(Long id) {
         return ventaRepository.findById(id)
-                .map(ventaMapper::toDTO)
+                .map(ventaMapper::toOutputDTO)
                 .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + id));
     }
 
     @Transactional
-    public VentaDTO save(VentaDTO ventaDTO) {
-        Venta venta = ventaMapper.toEntity(ventaDTO);
+    public VentaOutputDTO save(VentaInputDTO ventaInputDTO) {
+        Venta venta = ventaMapper.toEntity(ventaInputDTO);
 
-        if (ventaDTO.usuarioId() != null) {
-            Usuario usuario = usuarioRepository.findById(ventaDTO.usuarioId())
-                    .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + ventaDTO.usuarioId()));
+        if (ventaInputDTO.usuarioId() != null) {
+            Usuario usuario = usuarioRepository.findById(ventaInputDTO.usuarioId())
+                    .orElseThrow(
+                            () -> new RuntimeException("Usuario no encontrado con ID: " + ventaInputDTO.usuarioId()));
             venta.setUsuario(usuario);
         }
 
         // If we want to create tickets along with sale:
-        if (ventaDTO.entradas() != null) {
+        if (ventaInputDTO.entradas() != null) {
             Set<Entrada> entradasEntities = new HashSet<>();
-            for (EntradaDTO eDTO : ventaDTO.entradas()) {
+            for (EntradaInputDTO eDTO : ventaInputDTO.entradas()) {
                 // Check function
                 if (eDTO.funcionId() == null)
                     throw new RuntimeException("Entrada sin funcion ID");
@@ -81,7 +83,52 @@ public class VentaService {
         }
 
         Venta saved = ventaRepository.save(venta);
-        return ventaMapper.toDTO(saved);
+        return ventaMapper.toOutputDTO(saved);
+    }
+
+    @Transactional
+    public VentaOutputDTO update(Long id, VentaInputDTO ventaInputDTO) {
+        if (!ventaRepository.existsById(id)) {
+            throw new RuntimeException("Venta no encontrada con ID: " + id);
+        }
+        Venta venta = ventaMapper.toEntity(ventaInputDTO);
+        venta.setId(id);
+
+        if (ventaInputDTO.usuarioId() != null) {
+            Usuario usuario = usuarioRepository.findById(ventaInputDTO.usuarioId())
+                    .orElseThrow(
+                            () -> new RuntimeException("Usuario no encontrado con ID: " + ventaInputDTO.usuarioId()));
+            venta.setUsuario(usuario);
+        }
+
+        // Handling entradas update is complex, for now assuming we replace them or add
+        // new ones logic needs to be defined.
+        // For simplicity reusing the same logic as save but this might duplicate if not
+        // careful.
+        // In a real scenario, we might want to update existing tickets or add new ones.
+        // Here we will just clear and re-add if provided (careful with existing IDs)
+        // OR better, just update the Venta fields and leave Entradas management to
+        // EntradaService or specific Venta methods.
+        // For this refactoring, I will replicate the 'save' logic for relations but
+        // usually update handles relations more carefully.
+
+        if (ventaInputDTO.entradas() != null) {
+            Set<Entrada> entradasEntities = new HashSet<>();
+            for (EntradaInputDTO eDTO : ventaInputDTO.entradas()) {
+                Funcion funcion = funcionRepository.findById(eDTO.funcionId())
+                        .orElseThrow(() -> new RuntimeException("Funcion no encontrada " + eDTO.funcionId()));
+                Entrada entrada = entradaMapper.toEntity(eDTO);
+                entrada.setFuncion(funcion);
+                entrada.setVenta(venta);
+                if (entrada.getEstado() == null)
+                    entrada.setEstado(EstadoEntrada.VENDIDA);
+                entradasEntities.add(entrada);
+            }
+            venta.setEntradas(entradasEntities);
+        }
+
+        Venta saved = ventaRepository.save(venta);
+        return ventaMapper.toOutputDTO(saved);
     }
 
     public void deleteById(Long id) {

@@ -1,6 +1,7 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.ActorDTO;
+import _DAM.Cine_V2.dto.input.ActorInputDTO;
+import _DAM.Cine_V2.dto.output.ActorOutputDTO;
 import _DAM.Cine_V2.mapper.ActorMapper;
 import _DAM.Cine_V2.modelo.Actor;
 import _DAM.Cine_V2.repositorio.ActorRepository;
@@ -17,22 +18,32 @@ public class ActorService {
     private final ActorRepository actorRepository;
     private final ActorMapper actorMapper;
 
-    public List<ActorDTO> findAll() {
+    public List<ActorOutputDTO> findAll() {
         return actorRepository.findAll().stream()
-                .map(actorMapper::toDTO)
+                .map(actorMapper::toOutputDTO)
                 .collect(Collectors.toList());
     }
 
-    public ActorDTO findById(Long id) {
+    public ActorOutputDTO findById(Long id) {
         return actorRepository.findById(id)
-                .map(actorMapper::toDTO)
+                .map(actorMapper::toOutputDTO)
                 .orElseThrow(() -> new RuntimeException("Actor no encontrado con ID: " + id));
     }
 
-    public ActorDTO save(ActorDTO actorDTO) {
-        Actor actor = actorMapper.toEntity(actorDTO);
+    public ActorOutputDTO save(ActorInputDTO actorInputDTO) {
+        Actor actor = actorMapper.toEntity(actorInputDTO);
         Actor saved = actorRepository.save(actor);
-        return actorMapper.toDTO(saved);
+        return actorMapper.toOutputDTO(saved);
+    }
+
+    public ActorOutputDTO update(Long id, ActorInputDTO actorInputDTO) {
+        if (!actorRepository.existsById(id)) {
+            throw new RuntimeException("Actor no encontrado con ID: " + id);
+        }
+        Actor actor = actorMapper.toEntity(actorInputDTO);
+        actor.setId(id);
+        Actor saved = actorRepository.save(actor);
+        return actorMapper.toOutputDTO(saved);
     }
 
     public void deleteById(Long id) {

@@ -1,13 +1,17 @@
 package _DAM.Cine_V2.mapper;
 
-import _DAM.Cine_V2.dto.SalaDTO;
+import _DAM.Cine_V2.dto.input.SalaInputDTO;
+import _DAM.Cine_V2.dto.output.SalaOutputDTO;
 import _DAM.Cine_V2.modelo.Sala;
 import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface SalaMapper {
-    SalaDTO toDTO(Sala sala);
+    SalaOutputDTO toOutputDTO(Sala sala);
 
-    Sala toEntity(SalaDTO salaDTO);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "funciones", ignore = true)
+    Sala toEntity(SalaInputDTO salaInputDTO);
 }

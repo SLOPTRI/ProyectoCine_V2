@@ -1,6 +1,7 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.FuncionDTO;
+import _DAM.Cine_V2.dto.input.FuncionInputDTO;
+import _DAM.Cine_V2.dto.output.FuncionOutputDTO;
 import _DAM.Cine_V2.mapper.FuncionMapper;
 import _DAM.Cine_V2.modelo.Funcion;
 import _DAM.Cine_V2.modelo.Pelicula;
@@ -25,38 +26,65 @@ public class FuncionService {
     private final FuncionMapper funcionMapper;
 
     @Transactional(readOnly = true)
-    public List<FuncionDTO> findAll() {
+    public List<FuncionOutputDTO> findAll() {
         return funcionRepository.findAll().stream()
-                .map(funcionMapper::toDTO)
+                .map(funcionMapper::toOutputDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
-    public FuncionDTO findById(Long id) {
+    public FuncionOutputDTO findById(Long id) {
         return funcionRepository.findById(id)
-                .map(funcionMapper::toDTO)
+                .map(funcionMapper::toOutputDTO)
                 .orElseThrow(() -> new RuntimeException("Funcion no encontrada con ID: " + id));
     }
 
     @Transactional
-    public FuncionDTO save(FuncionDTO funcionDTO) {
-        Funcion funcion = funcionMapper.toEntity(funcionDTO);
+    public FuncionOutputDTO save(FuncionInputDTO funcionInputDTO) {
+        Funcion funcion = funcionMapper.toEntity(funcionInputDTO);
 
-        if (funcionDTO.peliculaId() != null) {
-            Pelicula pelicula = peliculaRepository.findById(funcionDTO.peliculaId())
+        if (funcionInputDTO.peliculaId() != null) {
+            Pelicula pelicula = peliculaRepository.findById(funcionInputDTO.peliculaId())
                     .orElseThrow(
-                            () -> new RuntimeException("Pelicula no encontrada con ID: " + funcionDTO.peliculaId()));
+                            () -> new RuntimeException(
+                                    "Pelicula no encontrada con ID: " + funcionInputDTO.peliculaId()));
             funcion.setPelicula(pelicula);
         }
 
-        if (funcionDTO.salaId() != null) {
-            Sala sala = salaRepository.findById(funcionDTO.salaId())
-                    .orElseThrow(() -> new RuntimeException("Sala no encontrada con ID: " + funcionDTO.salaId()));
+        if (funcionInputDTO.salaId() != null) {
+            Sala sala = salaRepository.findById(funcionInputDTO.salaId())
+                    .orElseThrow(() -> new RuntimeException("Sala no encontrada con ID: " + funcionInputDTO.salaId()));
             funcion.setSala(sala);
         }
 
         Funcion saved = funcionRepository.save(funcion);
-        return funcionMapper.toDTO(saved);
+        return funcionMapper.toOutputDTO(saved);
+    }
+
+    @Transactional
+    public FuncionOutputDTO update(Long id, FuncionInputDTO funcionInputDTO) {
+        if (!funcionRepository.existsById(id)) {
+            throw new RuntimeException("Funcion no encontrada con ID: " + id);
+        }
+        Funcion funcion = funcionMapper.toEntity(funcionInputDTO);
+        funcion.setId(id);
+
+        if (funcionInputDTO.peliculaId() != null) {
+            Pelicula pelicula = peliculaRepository.findById(funcionInputDTO.peliculaId())
+                    .orElseThrow(
+                            () -> new RuntimeException(
+                                    "Pelicula no encontrada con ID: " + funcionInputDTO.peliculaId()));
+            funcion.setPelicula(pelicula);
+        }
+
+        if (funcionInputDTO.salaId() != null) {
+            Sala sala = salaRepository.findById(funcionInputDTO.salaId())
+                    .orElseThrow(() -> new RuntimeException("Sala no encontrada con ID: " + funcionInputDTO.salaId()));
+            funcion.setSala(sala);
+        }
+
+        Funcion saved = funcionRepository.save(funcion);
+        return funcionMapper.toOutputDTO(saved);
     }
 
     @Transactional
