@@ -1,13 +1,18 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.input.UsuarioInputDTO;
-import _DAM.Cine_V2.dto.output.UsuarioOutputDTO;
+import _DAM.Cine_V2.dto.Auth.LoginRequestDTO;
+import _DAM.Cine_V2.dto.Auth.LoginResponseDTO;
+import _DAM.Cine_V2.dto.Auth.RegisterRequestDTO;
+import _DAM.Cine_V2.dto.usuario.UsuarioInputDTO;
+import _DAM.Cine_V2.dto.usuario.UsuarioOutputDTO;
 import _DAM.Cine_V2.mapper.UsuarioMapper;
 import _DAM.Cine_V2.modelo.Rol;
 import _DAM.Cine_V2.modelo.Usuario;
 import _DAM.Cine_V2.repositorio.RolRepository;
 import _DAM.Cine_V2.repositorio.UsuarioRepository;
+import _DAM.Cine_V2.security.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,27 +28,30 @@ public class UsuarioService {
     private final UsuarioRepository usuarioRepository;
     private final RolRepository rolRepository;
     private final UsuarioMapper usuarioMapper;
+    private final JwtUtil jwtUtil;
+
+    private final PasswordEncoder encoder; //Inyeccion de BCrypt
 
     public List<UsuarioOutputDTO> findAll() {
         return usuarioRepository.findAll().stream()
-                .map(usuarioMapper::toOutputDTO)
+                .map(usuarioMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     public UsuarioOutputDTO findById(Long id) {
         return usuarioRepository.findById(id)
-                .map(usuarioMapper::toOutputDTO)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con ID: " + id));
+                .map(usuarioMapper::toDTO)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrada con ID: " + id));
     }
 
     @Transactional
-    public UsuarioOutputDTO save(UsuarioInputDTO usuarioInputDTO) {
-        Usuario usuario = usuarioMapper.toEntity(usuarioInputDTO);
+    public UsuarioOutputDTO save(UsuarioInputDTO usuarioDTO) {
+        Usuario usuario = usuarioMapper.toEntity(usuarioDTO);
 
         // Handle Roles
-        if (usuarioInputDTO.roles() != null && !usuarioInputDTO.roles().isEmpty()) {
+        if (usuarioDTO.roles() != null && !usuarioDTO.roles().isEmpty()) {
             Set<Rol> roles = new HashSet<>();
-            for (String rolNombre : usuarioInputDTO.roles()) {
+            for (String rolNombre : usuarioDTO.roles()) {
                 Rol rol = rolRepository.findByNombre(rolNombre)
                         .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + rolNombre));
                 roles.add(rol);
@@ -52,26 +60,25 @@ public class UsuarioService {
         }
 
         // Handle password (basic for now)
-        if (usuarioInputDTO.password() != null && !usuarioInputDTO.password().isBlank()) {
-            usuario.setPassword(usuarioInputDTO.password()); // In real app, B.crypt here
+        if (usuarioDTO.password() != null && !usuarioDTO.password().isBlank()) {
+            usuario.setPassword(usuarioDTO.password()); // In real app, B.crypt here
         }
 
         Usuario saved = usuarioRepository.save(usuario);
-        return usuarioMapper.toOutputDTO(saved);
+        return usuarioMapper.toDTO(saved);
     }
 
     @Transactional
-    public UsuarioOutputDTO update(Long id, UsuarioInputDTO usuarioInputDTO) {
-        if (!usuarioRepository.existsById(id)) {
-            throw new RuntimeException("Usuario no encontrado con ID: " + id);
-        }
-        Usuario usuario = usuarioMapper.toEntity(usuarioInputDTO);
-        usuario.setId(id);
+    public UsuarioOutputDTO update(Long id, UsuarioInputDTO usuarioDTO) {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrada con ID: " + id));
+
+        usuarioMapper.update(usuarioDTO, usuario);
 
         // Handle Roles
-        if (usuarioInputDTO.roles() != null && !usuarioInputDTO.roles().isEmpty()) {
+        if (usuarioDTO.roles() != null) {
             Set<Rol> roles = new HashSet<>();
-            for (String rolNombre : usuarioInputDTO.roles()) {
+            for (String rolNombre : usuarioDTO.roles()) {
                 Rol rol = rolRepository.findByNombre(rolNombre)
                         .orElseThrow(() -> new RuntimeException("Rol no encontrado: " + rolNombre));
                 roles.add(rol);
@@ -79,13 +86,11 @@ public class UsuarioService {
             usuario.setRoles(roles);
         }
 
-        // Handle password (basic for now)
-        if (usuarioInputDTO.password() != null && !usuarioInputDTO.password().isBlank()) {
-            usuario.setPassword(usuarioInputDTO.password()); // In real app, B.crypt here
+        if (usuarioDTO.password() != null && !usuarioDTO.password().isBlank()) {
+            usuario.setPassword(usuarioDTO.password());
         }
 
-        Usuario saved = usuarioRepository.save(usuario);
-        return usuarioMapper.toOutputDTO(saved);
+        return usuarioMapper.toDTO(usuarioRepository.save(usuario));
     }
 
     public void deleteById(Long id) {
@@ -93,5 +98,36 @@ public class UsuarioService {
             throw new RuntimeException("Usuario no encontrado con ID: " + id);
         }
         usuarioRepository.deleteById(id);
+    }
+
+    public void register(RegisterRequestDTO req) {
+        Usuario u = new Usuario();
+        u.setEmail(req.email());
+        u.setPassword(encoder.encode(req.password()));
+        u.setRol("USER");
+        usuarioRepository.save(u);
+    }
+
+    public void registerAdmin(RegisterRequestDTO req){
+        Usuario u = new Usuario();
+        u.setEmail(req.email());
+        u.setPassword(encoder.encode(req.password()));
+        u.setRol("ADMIN");
+        usuarioRepository.save(u);
+    }
+
+    public LoginResponseDTO login(LoginRequestDTO req) {
+        Usuario u = usuarioRepository.findByEmail(req.email())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        if (!encoder.matches(req.password(), u.getPassword())) {
+            throw new RuntimeException("Credenciales incorrectas");
+        }
+
+        // 🆕 ¡Generamos el pase VIP (Token)!
+        String token = jwtUtil.generateToken(u);
+
+        // 🆕 Devolvemos el DTO con el token real
+        return new LoginResponseDTO(u.getEmail(), "Login exitoso", token);
     }
 }

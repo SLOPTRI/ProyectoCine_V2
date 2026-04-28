@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.RolInputDTO;
-import _DAM.Cine_V2.dto.output.RolOutputDTO;
+import _DAM.Cine_V2.dto.rol.RolInputDTO;
+import _DAM.Cine_V2.dto.rol.RolOutputDTO;
 import _DAM.Cine_V2.servicio.RolService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +29,13 @@ public class RolController {
     }
 
     @PostMapping
-    public ResponseEntity<RolOutputDTO> create(@Valid @RequestBody RolInputDTO rolInputDTO) {
-        return new ResponseEntity<>(rolService.save(rolInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<RolOutputDTO> create(@Valid @RequestBody RolInputDTO rolDTO) {
+        return new ResponseEntity<>(rolService.save(rolDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<RolOutputDTO> update(@PathVariable Long id, @Valid @RequestBody RolInputDTO rolInputDTO) {
-        return ResponseEntity.ok(rolService.update(id, rolInputDTO));
+    public ResponseEntity<RolOutputDTO> update(@PathVariable Long id, @Valid @RequestBody RolInputDTO rolDTO) {
+        return ResponseEntity.ok(rolService.update(id, rolDTO));
     }
 
     @DeleteMapping("/{id}")

@@ -21,6 +21,7 @@ public class Usuario {
 
     private String email;
     private String password;
+    private String rol;
     private boolean enabled;
 
     @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)

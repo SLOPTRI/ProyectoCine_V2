@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.DirectorInputDTO;
-import _DAM.Cine_V2.dto.output.DirectorOutputDTO;
+import _DAM.Cine_V2.dto.director.DirectorInputDTO;
+import _DAM.Cine_V2.dto.director.DirectorOutputDTO;
 import _DAM.Cine_V2.servicio.DirectorService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ public class DirectorController {
     }
 
     @PostMapping
-    public ResponseEntity<DirectorOutputDTO> create(@Valid @RequestBody DirectorInputDTO directorInputDTO) {
-        return new ResponseEntity<>(directorService.save(directorInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<DirectorOutputDTO> create(@Valid @RequestBody DirectorInputDTO directorDTO) {
+        return new ResponseEntity<>(directorService.save(directorDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<DirectorOutputDTO> update(@PathVariable Long id,
-            @Valid @RequestBody DirectorInputDTO directorInputDTO) {
-        return ResponseEntity.ok(directorService.update(id, directorInputDTO));
+            @Valid @RequestBody DirectorInputDTO directorDTO) {
+        return ResponseEntity.ok(directorService.update(id, directorDTO));
     }
 
     @DeleteMapping("/{id}")

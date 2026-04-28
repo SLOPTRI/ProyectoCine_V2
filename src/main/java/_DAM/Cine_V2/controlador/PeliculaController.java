@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.PeliculaInputDTO;
-import _DAM.Cine_V2.dto.output.PeliculaOutputDTO;
+import _DAM.Cine_V2.dto.pelicula.PeliculaInputDTO;
+import _DAM.Cine_V2.dto.pelicula.PeliculaOutputDTO;
 import _DAM.Cine_V2.servicio.PeliculaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ public class PeliculaController {
     }
 
     @PostMapping
-    public ResponseEntity<PeliculaOutputDTO> create(@Valid @RequestBody PeliculaInputDTO peliculaInputDTO) {
-        return new ResponseEntity<>(peliculaService.save(peliculaInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<PeliculaOutputDTO> create(@Valid @RequestBody PeliculaInputDTO peliculaDTO) {
+        return new ResponseEntity<>(peliculaService.save(peliculaDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<PeliculaOutputDTO> update(@PathVariable Long id,
-            @Valid @RequestBody PeliculaInputDTO peliculaInputDTO) {
-        return ResponseEntity.ok(peliculaService.update(id, peliculaInputDTO));
+            @Valid @RequestBody PeliculaInputDTO peliculaDTO) {
+        return ResponseEntity.ok(peliculaService.update(id, peliculaDTO));
     }
 
     @DeleteMapping("/{id}")

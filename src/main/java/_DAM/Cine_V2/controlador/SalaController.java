@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.SalaInputDTO;
-import _DAM.Cine_V2.dto.output.SalaOutputDTO;
+import _DAM.Cine_V2.dto.sala.SalaInputDTO;
+import _DAM.Cine_V2.dto.sala.SalaOutputDTO;
 import _DAM.Cine_V2.servicio.SalaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,13 +29,13 @@ public class SalaController {
     }
 
     @PostMapping
-    public ResponseEntity<SalaOutputDTO> create(@Valid @RequestBody SalaInputDTO salaInputDTO) {
-        return new ResponseEntity<>(salaService.save(salaInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<SalaOutputDTO> create(@Valid @RequestBody SalaInputDTO salaDTO) {
+        return new ResponseEntity<>(salaService.save(salaDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SalaOutputDTO> update(@PathVariable Long id, @Valid @RequestBody SalaInputDTO salaInputDTO) {
-        return ResponseEntity.ok(salaService.update(id, salaInputDTO));
+    public ResponseEntity<SalaOutputDTO> update(@PathVariable Long id, @Valid @RequestBody SalaInputDTO salaDTO) {
+        return ResponseEntity.ok(salaService.update(id, salaDTO));
     }
 
     @DeleteMapping("/{id}")

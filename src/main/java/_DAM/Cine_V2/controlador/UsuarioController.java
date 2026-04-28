@@ -1,7 +1,10 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.UsuarioInputDTO;
-import _DAM.Cine_V2.dto.output.UsuarioOutputDTO;
+import _DAM.Cine_V2.dto.Auth.LoginRequestDTO;
+import _DAM.Cine_V2.dto.Auth.LoginResponseDTO;
+import _DAM.Cine_V2.dto.Auth.RegisterRequestDTO;
+import _DAM.Cine_V2.dto.usuario.UsuarioInputDTO;
+import _DAM.Cine_V2.dto.usuario.UsuarioOutputDTO;
 import _DAM.Cine_V2.servicio.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +32,14 @@ public class UsuarioController {
     }
 
     @PostMapping
-    public ResponseEntity<UsuarioOutputDTO> create(@Valid @RequestBody UsuarioInputDTO usuarioInputDTO) {
-        return new ResponseEntity<>(usuarioService.save(usuarioInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<UsuarioOutputDTO> create(@Valid @RequestBody UsuarioInputDTO usuarioDTO) {
+        return new ResponseEntity<>(usuarioService.save(usuarioDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioOutputDTO> update(@PathVariable Long id,
-            @Valid @RequestBody UsuarioInputDTO usuarioInputDTO) {
-        return ResponseEntity.ok(usuarioService.update(id, usuarioInputDTO));
+            @Valid @RequestBody UsuarioInputDTO usuarioDTO) {
+        return ResponseEntity.ok(usuarioService.update(id, usuarioDTO));
     }
 
     @DeleteMapping("/{id}")
@@ -44,4 +47,6 @@ public class UsuarioController {
         usuarioService.deleteById(id);
         return ResponseEntity.noContent().build();
     }
+
+
 }

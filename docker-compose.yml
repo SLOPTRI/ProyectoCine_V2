@@ -1,16 +1,17 @@
 services:
-  postgres:
+  mysql:
     container_name: cine_db_container
-    image: postgres:15
+    image: mysql:8.0
     environment:
-      POSTGRES_USER: cine_user
-      POSTGRES_PASSWORD: cine_password
-      POSTGRES_DB: cine_db
+      MYSQL_ROOT_PASSWORD: root_password # MySQL exige siempre una clave root
+      MYSQL_DATABASE: cine_db
+      MYSQL_USER: cine_user
+      MYSQL_PASSWORD: cine_password
     ports:
-      - "5433:5432"
+      - "3307:3306" # Puerto estándar de MySQL
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql # Ruta de datos de MySQL
     restart: always
 
 volumes:
-  postgres_data:
+  mysql_data:

@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.controlador;
 
-import _DAM.Cine_V2.dto.input.EntradaInputDTO;
-import _DAM.Cine_V2.dto.output.EntradaOutputDTO;
+import _DAM.Cine_V2.dto.entrada.EntradaInputDTO;
+import _DAM.Cine_V2.dto.entrada.EntradaOutputDTO;
 import _DAM.Cine_V2.servicio.EntradaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -29,14 +29,14 @@ public class EntradaController {
     }
 
     @PostMapping
-    public ResponseEntity<EntradaOutputDTO> create(@Valid @RequestBody EntradaInputDTO entradaInputDTO) {
-        return new ResponseEntity<>(entradaService.save(entradaInputDTO), HttpStatus.CREATED);
+    public ResponseEntity<EntradaOutputDTO> create(@Valid @RequestBody EntradaInputDTO entradaDTO) {
+        return new ResponseEntity<>(entradaService.save(entradaDTO), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<EntradaOutputDTO> update(@PathVariable Long id,
-            @Valid @RequestBody EntradaInputDTO entradaInputDTO) {
-        return ResponseEntity.ok(entradaService.update(id, entradaInputDTO));
+            @Valid @RequestBody EntradaInputDTO entradaDTO) {
+        return ResponseEntity.ok(entradaService.update(id, entradaDTO));
     }
 
     @DeleteMapping("/{id}")

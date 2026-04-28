@@ -1,7 +1,7 @@
 package _DAM.Cine_V2.servicio;
 
-import _DAM.Cine_V2.dto.input.ActorInputDTO;
-import _DAM.Cine_V2.dto.output.ActorOutputDTO;
+import _DAM.Cine_V2.dto.actor.ActorInputDTO;
+import _DAM.Cine_V2.dto.actor.ActorOutputDTO;
 import _DAM.Cine_V2.mapper.ActorMapper;
 import _DAM.Cine_V2.modelo.Actor;
 import _DAM.Cine_V2.repositorio.ActorRepository;
@@ -20,30 +20,27 @@ public class ActorService {
 
     public List<ActorOutputDTO> findAll() {
         return actorRepository.findAll().stream()
-                .map(actorMapper::toOutputDTO)
+                .map(actorMapper::toDTO)
                 .collect(Collectors.toList());
     }
 
     public ActorOutputDTO findById(Long id) {
         return actorRepository.findById(id)
-                .map(actorMapper::toOutputDTO)
+                .map(actorMapper::toDTO)
                 .orElseThrow(() -> new RuntimeException("Actor no encontrado con ID: " + id));
     }
 
-    public ActorOutputDTO save(ActorInputDTO actorInputDTO) {
-        Actor actor = actorMapper.toEntity(actorInputDTO);
+    public ActorOutputDTO save(ActorInputDTO actorDTO) {
+        Actor actor = actorMapper.toEntity(actorDTO);
         Actor saved = actorRepository.save(actor);
-        return actorMapper.toOutputDTO(saved);
+        return actorMapper.toDTO(saved);
     }
 
-    public ActorOutputDTO update(Long id, ActorInputDTO actorInputDTO) {
-        if (!actorRepository.existsById(id)) {
-            throw new RuntimeException("Actor no encontrado con ID: " + id);
-        }
-        Actor actor = actorMapper.toEntity(actorInputDTO);
-        actor.setId(id);
-        Actor saved = actorRepository.save(actor);
-        return actorMapper.toOutputDTO(saved);
+    public ActorOutputDTO update(Long id, ActorInputDTO actorDTO) {
+        Actor actor = actorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Actor no encontrado con ID: " + id));
+        actorMapper.update(actorDTO, actor);
+        return actorMapper.toDTO(actorRepository.save(actor));
     }
 
     public void deleteById(Long id) {

@@ -1,17 +1,19 @@
 package _DAM.Cine_V2.mapper;
 
-import _DAM.Cine_V2.dto.input.ActorInputDTO;
-import _DAM.Cine_V2.dto.output.ActorOutputDTO;
+import _DAM.Cine_V2.dto.actor.ActorInputDTO;
+import _DAM.Cine_V2.dto.actor.ActorOutputDTO;
 import _DAM.Cine_V2.modelo.Actor;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingConstants;
+import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = MappingConstants.ComponentModel.SPRING)
 public interface ActorMapper {
-    ActorOutputDTO toOutputDTO(Actor actor);
+    ActorOutputDTO toDTO(Actor actor);
+
+    Actor toEntity(ActorInputDTO actorInputDTO);
 
     @Mapping(target = "id", ignore = true)
-    @Mapping(target = "peliculas", ignore = true)
-    Actor toEntity(ActorInputDTO actorInputDTO);
+    void update(ActorInputDTO actorInputDTO, @MappingTarget Actor actor);
 }
